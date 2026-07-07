@@ -13,8 +13,11 @@ const server = http.createServer(app)
 
 // Intialize socket.io server
 export const io = new Server(server, {
-    cors: {origin: "*"}
-})
+    cors: {
+        origin: process.env.CLIENT_URL,
+        credentials: true,
+    },
+});
 
 // Store online users
 export const userSocketMap = {}; // { userId: socketId }
@@ -38,7 +41,10 @@ io.on("connection", (socket)=>{
 
 // Middleware setup
 app.use(express.json({limit: "4mb"}));
-app.use(cors());
+app.use(cors({
+    origin: process.env.CLIENT_URL,
+    credentials: true,
+}));
 
 
 // Routes setup
@@ -50,10 +56,10 @@ app.use("/api/messages", messageRouter)
 // Connect to MongoDB
 await connectDB();
 
-if(process.env.NODE_ENV !== "production"){
-    const PORT = process.env.PORT || 5000;
-    server.listen(PORT, ()=> console.log("Server is running on PORT: " + PORT));
-}
+const PORT = process.env.PORT || 5000;
 
-// Export server for vercel
-export default server;
+server.listen(PORT, () => {
+    console.log(`Server is running on PORT: ${PORT}`);
+});
+
+
